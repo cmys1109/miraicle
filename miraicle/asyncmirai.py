@@ -741,6 +741,89 @@ class AsyncMirai(metaclass=Singleton):
                     return False
         return False
 
+    async def handle_new_friend_request(self, event: NewFriendRequestEvent, operate: int, message: str = ''):
+        """处理新好友请求
+        :param
+            event: NewFriendRequestEvent 对象
+
+            operate: 处理方式，0 为同意, 1 为拒绝, 2 拒绝并添加黑名单
+
+            message: 附加消息
+        :return: 处理结果
+        """
+        if operate not in [0, 1, 2]:
+            raise ValueError('operate 参数错误')
+
+        content = {'sessionKey': self.session_key,
+                   'eventId': event.event_id,
+                   'fromId': event.from_id,
+                   'groupId': event.group_id,
+                   'operate': operate,
+                   'message': message}
+        if self.adapter == 'http':
+            async with self.__session.post(url=f'{self.base_url}/resp/newFriendRequestEvent', json=content) as r:
+                response = await r.json()
+        else:
+            response = await self.__ws_send('resp_newFriendRequestEvent', content=content)
+
+        return response
+
+    def handle_member_join_request(self, event: MemberJoinRequestEvent, operate: int, message: str = ''):
+        """处理新成员入群请求
+        :param
+            event: MemberJoinRequestEvent 对象
+
+            operate: 处理方式，0 为同意, 1 为拒绝, 2 忽略, 3 拒绝并添加黑名单, 4 忽略并添加黑名单
+
+            message: 附加消息
+        :return: 处理结果
+        """
+        if operate not in [0, 1, 2, 3, 4]:
+            raise ValueError('operate 参数错误')
+
+        content = {'sessionKey': self.session_key,
+                   'eventId': event.event_id,
+                   'fromId': event.from_id,
+                   'groupId': event.group_id,
+                   'operate': operate,
+                   'message': message}
+        if self.adapter == 'http':
+            async with self.__session.post(url=f'{self.base_url}/resp/memberJoinRequestEvent', json=content) as r:
+                response = await r.json()
+        else:
+            response = await self.__ws_send('resp_memberJoinRequestEvent', content=content)
+
+        return response
+
+    def handle_bot_invited_join_group_request(self, event: BotInvitedJoinGroupRequestEvent, operate: int,
+                                              message: str = ''):
+        """处理机器人被邀请入群请求
+        :param
+            event: BotInvitedJoinGroupRequestEvent 对象
+
+            operate: 处理方式, 0 为同意, 1 为拒绝
+
+            message: 附加消息
+        :return: 处理结果
+        """
+        if operate not in [0, 1]:
+            raise ValueError('operate 参数错误')
+
+        content = {'sessionKey': self.session_key,
+                   'eventId': event.event_id,
+                   'fromId': event.from_id,
+                   'groupId': event.group_id,
+                   'operate': operate,
+                   'message': message}
+        if self.adapter == 'http':
+            async with self.__session.post(url=f'{self.base_url}/resp/botInvitedJoinGroupRequestEvent',
+                                           json=content) as r:
+                response = await r.json()
+        else:
+            response = await self.__ws_send('resp_botInvitedJoinGroupRequestEvent', content=content)
+
+        return response
+
     @classmethod
     def receiver(cls, msg_type):
         def wrapper(func):

@@ -695,3 +695,48 @@ class BotOfflineEvent:
 
     def __repr__(self):
         return color(self.type, 'red')
+
+
+class RequestEvent:
+    """
+    申请事件基类
+    - 添加好友申请
+    - 用户入群申请
+    - 入群邀请申请
+    """
+    def __init__(self, msg: dict):
+        self.json = msg
+        self.event_id = msg.get('eventId', None)
+        self.from_id = msg.get('fromId', None)
+        self.group_id = msg.get('groupId', None)
+        self.message = msg.get('message', None)
+        self.nick = msg.get('nick', None)
+
+
+class NewFriendRequestEvent(RequestEvent):
+    def __init__(self, msg: dict):
+        super().__init__(msg)
+
+    def __repr__(self):
+        return f'NewFriendRequestEvent #{self.event_id} from {self.nick}({self.from_id}): {self.message}'
+
+
+class MemberJoinRequestEvent(RequestEvent):
+    def __init__(self, msg: dict):
+        super().__init__(msg)
+        self.group_name = msg.get('groupName', None)
+        self.invitor_id = msg.get('invitorId', None)
+
+    def __repr__(self):
+        return f'MemberJoinRequestEvent #{self.event_id} from {self.nick}({self.from_id})' \
+               f' to join {self.group_name}({self.group_id}): {self.message}'
+
+
+class BotInvitedJoinGroupRequestEvent(RequestEvent):
+    def __init__(self, msg: dict):
+        super().__init__(msg)
+        self.group_name = msg.get('groupName', None)
+
+    def __repr__(self):
+        return f'BotInvitedJoinGroupRequestEvent #{self.event_id} from {self.nick}({self.from_id})' \
+               f' to join {self.group_name}({self.group_id}): {self.message}'
